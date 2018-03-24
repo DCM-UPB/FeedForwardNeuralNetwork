@@ -14,6 +14,15 @@ namespace smart_beta{
 
     const double MIN_BETA_NORM = 0.001;
 
+
+    void generateSmartBeta(FeedForwardNeuralNetwork * ffnn){
+        for (int i=0; i<ffnn->getNLayers(); ++i){
+            generateSmartBeta(ffnn->getLayer(i));
+        }
+    }
+
+
+
     void generateSmartBeta(NNLayer * L){
         using namespace std;
 

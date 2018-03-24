@@ -194,9 +194,7 @@ int main(){
 
     // --- generateSmartBeta
     // generate smart beta for the whole FFNN
-    for (int il=0; il<ffnn->getNLayers(); ++il){
-        smart_beta::generateSmartBeta(ffnn->getLayer(il));
-    }
+    smart_beta::generateSmartBeta(ffnn);
     // check the orthogonality relations
     vector<double> betas2;
     for (int il=1; il<ffnn->getNLayers(); ++il){

@@ -1,6 +1,7 @@
 #ifndef SMART_BETA_GENERATOR
 #define SMART_BETA_GENERATOR
 
+#include "FeedForwardNeuralNetwork.hpp"
 #include "NNLayer.hpp"
 #include "NNUnit.hpp"
 #include "NNUnitFeederInterface.hpp"
@@ -10,6 +11,7 @@
 namespace smart_beta{
 
     // generate and set smart betas for the NNLayer L_target, which is connected to L_source
+    void generateSmartBeta(FeedForwardNeuralNetwork * ffnn);
     void generateSmartBeta(NNLayer * L);
 
     // find the indexes of the units of a given NN layer which have a feeder
