@@ -17,6 +17,14 @@ public:
         return "mya";
     }
 
+    // range [-2 : 2]
+    double getIdealInputMu(){return 0.;};
+    double getIdealInputSigma(){return 1.154700538379252;};
+
+    // range [0 : 4]
+    double getOutputMu(){return 2.;};
+    double getOutputSigma(){return 1.154700538379252;};
+
     double f(const double &in){
         // function
         return 2.*in*in;
@@ -30,6 +38,11 @@ public:
     double f2d(const double &in){
         // second derivative
         return 4.;
+    }
+
+    double f3d(const double &in){
+        // third derivative
+        return 0.;
     }
 };
 
