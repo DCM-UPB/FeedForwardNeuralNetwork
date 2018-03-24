@@ -14,6 +14,10 @@ namespace smart_beta{
     void generateSmartBeta(FeedForwardNeuralNetwork * ffnn);
     void generateSmartBeta(NNLayer * L);
 
+
+
+    // --- Internal methods that should not be called from outside
+
     // find the indexes of the units of a given NN layer which have a feeder
     std::vector<int> _findIndexesOfUnitsWithFeeder(NNLayer * L);
 
