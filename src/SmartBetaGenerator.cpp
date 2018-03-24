@@ -6,9 +6,13 @@
 #include <random>
 #include <numeric>
 #include <cmath>
+#include <stdexcept>
 
 
-namespace ffnn{
+
+namespace smart_beta{
+
+    const double MIN_BETA_NORM = 0.001;
 
     void generateSmartBeta(NNLayer * L){
         using namespace std;
@@ -16,27 +20,42 @@ namespace ffnn{
         // get the indexes of the units we are interested in
         vector<int> idx = _findIndexesOfUnitsWithFeeder(L);
 
-        if (idx.size() < 1){
-            // TODO throw exception
-        }
-
-        // set the first unit beta
-        NNUnit * u0 = L->getUnit(idx[0]);
-        double mu, sigma;
-        _computeBetaMuAndSigma(u0, mu, sigma);
-        _setRandomBeta(u0->getFeeder(), mu, sigma);
-
-        // set all the other unit beta
-        const int n_li_units = ( signed(idx.size()) <= u0->getFeeder()->getNBeta() ) ? signed(idx.size()) : u0->getFeeder()->getNBeta();
-        for (int i=1; i<n_li_units ; ++i){
-            NNUnit * u = L->getUnit(idx[i]);
+        if ( idx.size() >= 1 ){
+            // set the first unit beta
+            NNUnit * u0 = L->getUnit(idx[0]);
             double mu, sigma;
-            _computeBetaMuAndSigma(u, mu, sigma);
-            _setRandomBeta(u->getFeeder(), mu, sigma);
-            for (int j=0; j<i; ++j){
-                _makeBetaOrthogonal(L->getUnit(idx[j])->getFeeder(), u->getFeeder());
+            _computeBetaMuAndSigma(u0, mu, sigma);
+            _setRandomBeta(u0->getFeeder(), mu, sigma);
+
+            // set the other unit beta until a complete basis set is formed
+            const int n_li_units = ( signed(idx.size()) <= u0->getFeeder()->getNBeta() ) ? signed(idx.size()) : u0->getFeeder()->getNBeta();
+            for (int i=1; i<n_li_units ; ++i){
+                NNUnit * u = L->getUnit(idx[i]);
+                double mu, sigma;
+                bool flag_sample_random_beta = true;
+                while (flag_sample_random_beta) {
+                    _computeBetaMuAndSigma(u, mu, sigma);
+                    _setRandomBeta(u->getFeeder(), mu, sigma);
+                    flag_sample_random_beta = false;
+                    for (int j=0; j<i; ++j){
+                        try{
+                            _makeBetaOrthogonal(L->getUnit(idx[j])->getFeeder(), u->getFeeder());
+                        } catch (exception &e) {
+                            // by applying the orthogonality prcedure, the norm of the beta vector has been reduced too much...
+                            // This means the vector had the same direction of a previous one and it was not possible to generate a orthogonal one
+                            flag_sample_random_beta = true;
+                        }
+                    }
+                }
             }
-            _imposeMuAndSigma(u->getFeeder(), mu, sigma);
+
+            // set all the remaninig unit beta, which will be redondant
+            for (int i=n_li_units; i<signed(idx.size()) ; ++i){
+                NNUnit * u = L->getUnit(idx[i]);
+                double mu, sigma;
+                _computeBetaMuAndSigma(u, mu, sigma);
+                _setRandomBeta(u->getFeeder(), mu, sigma);
+            }
         }
     }
 
@@ -65,6 +84,9 @@ namespace ffnn{
             sigma_beta = sigma_actf_input / (sum_U_sources mu_actf_output)
         */
         NNUnitFeederInterface * feeder = U->getFeeder();
+        if ( feeder == 0 ){
+            throw std::runtime_error( "Provided unit does not have a feeder, therefore it does not need beta" );
+        }
 
         // first compute the denominators
         double mu_denominator = 0;
@@ -88,18 +110,19 @@ namespace ffnn{
         */
         using namespace std;
 
-        default_random_engine gen;
+        random_device rdev;
+        mt19937_64 rgen = mt19937_64(rdev());
         normal_distribution<double> norm(mu, sigma);
 
         for (int i=0; i<feeder->getNBeta(); ++i){
-            feeder->setBeta(i, norm(gen));
+            feeder->setBeta(i, norm(rgen));
         }
     }
 
 
     void _makeBetaOrthogonal(NNUnitFeederInterface * fixed_feeder, NNUnitFeederInterface * feeder){
         /*
-        Modify feeder in order to make it orthogonal to fixed_feeder
+        Modify feeder in order to make it orthogonal to fixed_feeder, preserving the norm
         */
         using namespace std;
 
@@ -114,6 +137,7 @@ namespace ffnn{
         }
 
         // make u orthogonal to v
+        const double u_u = inner_product(begin(u), end(u), begin(u), 0.0);
         const double u_v = inner_product(begin(u), end(u), begin(v), 0.0);
         const double v_v = inner_product(begin(v), end(v), begin(v), 0.0);
         const double orthog_fact = u_v/v_v;
@@ -121,49 +145,15 @@ namespace ffnn{
             u[i] -= orthog_fact * v[i];
         }
 
+        // compute the new norm of u
+        const double new_u_u = inner_product(begin(u), end(u), begin(u), 0.0);
+        if ( sqrt(new_u_u) < MIN_BETA_NORM ){
+            throw std::runtime_error( "By applying the orthogonality procedure, the norm of the beta vector has been reduced too much" );
+        }
+
         // set the values of u to the feeder
         for (int i=0; i<feeder->getNBeta(); ++i){
-            feeder->setBeta(i, u[i]);
-        }
-    }
-
-    void _imposeMuAndSigma(NNUnitFeederInterface * feeder, const double &mu, const double &sigma){
-        /*
-        Change the beta of feeder in order to get as close as possible to a mean mu and a standard deviation sigma.
-        This is done without changing the direction of the vector beta, which means that it is obtained by multiplying
-        beta for a scalar lambda, requiring that the cost function
-            (mu - mean)^2 + (sigma - standard deviation)^2
-        is minimised. This corresponds to
-            lambda = (mu * mean + sigma * standard deviation) / (mean^2 + standard deviation^2)
-        */
-        using namespace std;
-
-        // build vectors u corresponding to the betas of the feeder
-        vector<double> u;
-        for (int i=0; i<feeder->getNBeta(); ++i){
-            u.push_back(feeder->getBeta(i));
-        }
-
-        // compute the mean
-        double mean = 0;
-        for (double b : u){
-            mean += b;
-        }
-        mean /= u.size();
-
-        // compute the stadard deviation
-        double std_dev = 0;
-        for (double b : u){
-            std_dev += pow(b - mean, 2);
-        }
-        std_dev = sqrt( std_dev / (u.size() - 1.) );
-
-        // compute lambda
-        const double lambda = ( mu*mean + sigma*std_dev ) / ( pow(mean, 2) + pow(std_dev, 2) ) ;
-
-        // multiply beta by the scalar lambda
-        for (int i=0; i<feeder->getNBeta(); ++i){
-            feeder->setBeta(i, lambda*u[i]);
+            feeder->setBeta(i, u[i]*sqrt(u_u/new_u_u));
         }
     }
 
