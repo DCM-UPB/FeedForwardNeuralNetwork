@@ -2,7 +2,6 @@
 #define NN_UNIT_FEEDER_INTERFACE
 
 #include "NNUnit.hpp"
-class NNUnit;  // necessary to solve circular dependence
 
 
 
