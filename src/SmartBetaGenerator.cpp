@@ -13,6 +13,7 @@
 namespace smart_beta{
 
     const double MIN_BETA_NORM = 0.001;
+    const int N_TRY_BEST_LD_BETA = 20;
 
 
     void generateSmartBeta(FeedForwardNeuralNetwork * ffnn){
@@ -63,7 +64,28 @@ namespace smart_beta{
                 NNUnit * u = L->getUnit(idx[i]);
                 double mu, sigma;
                 _computeBetaMuAndSigma(u, mu, sigma);
-                _setRandomBeta(u->getFeeder(), mu, sigma);
+                double best_dot_product = -1.;
+                vector<double> best_beta;
+                for (int ib=0; ib<u->getFeeder()->getNBeta(); ++ib) best_beta.push_back(0.);
+                for (int itry=0; itry<10; ++itry){
+                    _setRandomBeta(u->getFeeder(), mu, sigma);
+                    vector<double> beta_u;
+                    for (int ib=0; ib<u->getFeeder()->getNBeta(); ++ib) beta_u.push_back(u->getFeeder()->getBeta(ib));
+                    double min_dot_product = -1.;
+                    for (int j=0; j<i; ++j){
+                        vector<double> beta_v;
+                        for (int ib=0; ib<L->getUnit(idx[j])->getFeeder()->getNBeta(); ++ib) beta_v.push_back(L->getUnit(idx[j])->getFeeder()->getBeta(ib));
+                        const double dot_product = abs(inner_product(begin(beta_u), end(beta_u), begin(beta_v), 0.0))/inner_product(begin(beta_u), end(beta_u), begin(beta_u), 0.0);
+                        if (min_dot_product < 0.) min_dot_product = dot_product;
+                        if (dot_product < min_dot_product) min_dot_product = dot_product;
+                    }
+                    if (best_dot_product < 0.) best_dot_product = min_dot_product;
+                    if (min_dot_product < best_dot_product){
+                        best_dot_product = min_dot_product;
+                        for (int ib=0; ib<u->getFeeder()->getNBeta(); ++ib) best_beta[ib] = beta_u[ib];
+                    }
+                }
+                for (int ib=0; ib<u->getFeeder()->getNBeta(); ++ib) u->getFeeder()->setBeta(ib, best_beta[ib]);
             }
         }
     }
