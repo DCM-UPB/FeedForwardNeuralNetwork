@@ -1,6 +1,8 @@
 #ifndef NN_UNIT
 #define NN_UNIT
 
+class NNUnit;  // necessary to solve circular dependence
+
 #include "ActivationFunctionInterface.hpp"
 #include "NNUnitFeederInterface.hpp"
 

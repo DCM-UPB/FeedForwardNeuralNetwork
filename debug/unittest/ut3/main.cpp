@@ -32,19 +32,19 @@ int main(){
     assert(!ffnn2->hasSecondDerivativeSubstrate());
     assert(!ffnn2->hasVariationalFirstDerivativeSubstrate());
 
-    assert(ffnn->getLayer(0)->getUnit(0)->getActivationFunction()->getIdCode() == "id_");
+    assert(ffnn->getLayer(0)->getUnit(0)->getActivationFunction()->getIdCode() == "off");
     assert(ffnn->getLayer(0)->getUnit(1)->getActivationFunction()->getIdCode() == "id_");
     assert(ffnn->getLayer(0)->getUnit(2)->getActivationFunction()->getIdCode() == "lgs");
-    assert(ffnn->getLayer(1)->getUnit(0)->getActivationFunction()->getIdCode() == "id_");
+    assert(ffnn->getLayer(1)->getUnit(0)->getActivationFunction()->getIdCode() == "off");
     assert(ffnn->getLayer(1)->getUnit(1)->getActivationFunction()->getIdCode() == "lgs");
     assert(ffnn->getLayer(1)->getUnit(2)->getActivationFunction()->getIdCode() == "lgs");
     assert(ffnn->getLayer(1)->getUnit(3)->getActivationFunction()->getIdCode() == "gss");
     assert(ffnn->getLayer(1)->getUnit(4)->getActivationFunction()->getIdCode() == "lgs");
-    assert(ffnn->getLayer(2)->getUnit(0)->getActivationFunction()->getIdCode() == "id_");
+    assert(ffnn->getLayer(2)->getUnit(0)->getActivationFunction()->getIdCode() == "off");
     assert(ffnn->getLayer(2)->getUnit(1)->getActivationFunction()->getIdCode() == "gss");
     assert(ffnn->getLayer(2)->getUnit(2)->getActivationFunction()->getIdCode() == "lgs");
     assert(ffnn->getLayer(2)->getUnit(3)->getActivationFunction()->getIdCode() == "lgs");
-    assert(ffnn->getLayer(3)->getUnit(0)->getActivationFunction()->getIdCode() == "id_");
+    assert(ffnn->getLayer(3)->getUnit(0)->getActivationFunction()->getIdCode() == "off");
     assert(ffnn->getLayer(3)->getUnit(1)->getActivationFunction()->getIdCode() == "lgs");
     assert(ffnn->getLayer(3)->getUnit(2)->getActivationFunction()->getIdCode() == "gss");
 

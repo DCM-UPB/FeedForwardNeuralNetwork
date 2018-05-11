@@ -1,6 +1,9 @@
 #ifndef NN_UNIT_FEEDER_INTERFACE
 #define NN_UNIT_FEEDER_INTERFACE
 
+#include "NNUnit.hpp"
+
+
 
 class NNUnitFeederInterface
 {
@@ -8,6 +11,10 @@ protected:
 
 public:
     virtual ~NNUnitFeederInterface(){}
+
+    // sources, i.e. the NN units from which the values are taken from
+    virtual int getNSources() = 0;
+    virtual NNUnit * getSource(const int &i) = 0;
 
     // get info on beta
     virtual int getNBeta() = 0;

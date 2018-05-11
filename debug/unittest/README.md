@@ -23,3 +23,9 @@
 ## Unit Test 4
 
 `ut4/`: check that the compute and propagate work properly
+
+
+
+## Unit Test 5
+
+`ut5/`: check the SmartBetaGenerator functions

@@ -25,6 +25,10 @@ public:
     NNRay(NNLayer * nnl);
     virtual ~NNRay();
 
+    // sources
+    int getNSources(){return _source.size();}
+    NNUnit * getSource(const int &i){return _source[i];}
+
     // beta
     int getNBeta(){return _intensity.size();}
     double getBeta(const int &i){return _intensity[i];}

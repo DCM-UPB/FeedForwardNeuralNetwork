@@ -11,6 +11,31 @@
 \usepackage{natbib}
 \usepackage{lipsum}
 
+% C++ formatting
+\usepackage{listings}  % for code formatting
+\usepackage{color}
+\definecolor{listinggray}{gray}{0.9}
+\definecolor{lbcolor}{rgb}{0.9,0.9,0.9}
+\lstset{
+  backgroundcolor=\color{lbcolor},
+  tabsize=4,
+  language=C++,
+  captionpos=b,
+  tabsize=3,
+  frame=lines,
+  numbers=left,
+  numberstyle=\tiny,
+  numbersep=5pt,
+  breaklines=true,
+  showstringspaces=false,
+  basicstyle=\footnotesize,
+  identifierstyle=\color{magenta},
+  keywordstyle=\color[rgb]{0,0,1},
+  commentstyle=\color{OliveGreen},
+  stringstyle=\color{red}
+}
+
+
 \title{The Feed Forward Neural Network library}
 \author{Francesco Calcavecchia}
 
@@ -40,74 +65,74 @@ The comment \verb+TO DO+ indicates that the method needs to be implemented (as i
 \section{FeedForwardNeuralNetwork}
 \label{sec:NoisyFunction}
 
-\begin{verbatim}
+\begin{lstlisting}
 // #include "FeedForwardNeuralNetwork.hpp"
 class FeedForwardNeuralNetwork
 {
-   // Constructor and destructor
-   FeedForwardNeuralNetwork(const int &insize,
+    // Constructor and destructor
+    FeedForwardNeuralNetwork(const int &insize,
          const int &hidlaysize,
          const int &outsize);
-   FeedForwardNeuralNetwork(const char * filename);
-   ~FeedForwardNeuralNetwork();
+    FeedForwardNeuralNetwork(const char * filename);
+    ~FeedForwardNeuralNetwork();
 
-   // Getters for the basic information
-   int getNHiddenLayers();
-   int getNLayers();
-   int getLayerSize(const int &li);
-   ActivationFunctionInterface *
+    // Getters for the basic information
+    int getNHiddenLayers();
+    int getNLayers();
+    int getLayerSize(const int &li);
+    ActivationFunctionInterface *
          getLayerActivationFunction(const int &li);
 
-   // Getters for the variational parameters
-   int getNBeta();
-   double getBeta(const int &ib);
-   void setBeta(const int &ib, const double &beta);
+    // Getters for the variational parameters
+    int getNBeta();
+    double getBeta(const int &ib);
+    void setBeta(const int &ib, const double &beta);
 
-   // Set the structure of the FFNN
-   void pushHiddenLayer(const int &size);
-   void popHiddenLayer();
-   void setLayerSize(const int &li, const int &size);
-   void setGlobalActivationFunctions(
+    // Set the structure of the FFNN
+    void pushHiddenLayer(const int &size);
+    void popHiddenLayer();
+    void setLayerSize(const int &li, const int &size);
+    void setGlobalActivationFunctions(
          ActivationFunctionInterface * actf);
-   void setLayerActivationFunction(const int &li,
+    void setLayerActivationFunction(const int &li,
          ActivationFunctionInterface * actf);
 
-   // Set the computations required
-   void addFirstDerivativeSubstrate();
-   void addSecondDerivativeSubstrate();
-   void addVariationalFirstDerivativeSubstrate();
-   void addCrossFirstDerivativeSubstrate();
-   void addCrossSecondDerivativeSubstrate();
+    // Set the computations required
+    void addFirstDerivativeSubstrate();
+    void addSecondDerivativeSubstrate();
+    void addVariationalFirstDerivativeSubstrate();
+    void addCrossFirstDerivativeSubstrate();
+    void addCrossSecondDerivativeSubstrate();
 
-   // Connect the FFNN,
-   void connectFFNN();
-   void disconnectFFNN();
+    // Connect the FFNN,
+    void connectFFNN();
+    void disconnectFFNN();
 
-   // Set the input
-   void setInput(const int &n, const double * in);
+    // Set the input
+    void setInput(const int &n, const double * in);
 
-   // Feed Forward propagate the input signal
-   void FFPropagate();
+    // Feed Forward propagate the input signal
+    void FFPropagate();
 
-   // Get the ouput after the FFNN Propagation
-   double getOutput(const int &i);
-   double getFirstDerivative(const int &i,
+    // Get the ouput after the FFNN Propagation
+    double getOutput(const int &i);
+    double getFirstDerivative(const int &i,
                              const int &i1d);
-   double getSecondDerivative(const int &i,
+    double getSecondDerivative(const int &i,
                               const int &i2d);
-   double getVariationalFirstDerivative(const int &i,
+    double getVariationalFirstDerivative(const int &i,
                                         const int &iv1d);
-   double getCrossFirstDerivative(const int &i,
+    double getCrossFirstDerivative(const int &i,
                                   const int &i1d,
                                   const int &iv1d);
-   double getCrossFirstDerivative(const int &i,
+    double getCrossFirstDerivative(const int &i,
                                   const int &i2d,
                                   const int &iv1d);
 
-   // Store the FFNN structure on a file
-   void storeOnFile(const char * filename);
+    // Store the FFNN structure on a file
+    void storeOnFile(const char * filename);
 };
-\end{verbatim}
+\end{lstlisting}
 
 A \verb+NoisyFunction+ implements a function $f:\mathbb{R}^{n} \rightarrow \mathbb{R} \times \mathbb{R}$ which takes a multidimensional vector as input, and returns a scalar value with an associated error bar.
 
@@ -195,53 +220,110 @@ Now that the notation of the FFNN has been introduced, and we have briefly seen 
 \section{ActivationFunctionInterface} % (fold)
 \label{sec:activationfunctioninterface}
 
-\begin{verbatim}
+\begin{lstlisting}
 // #include "ActivationFunctionInterface.hpp"
-calss ActivationFunctionInterface
+class ActivationFunctionInterface
 {
-   public:
+public:
 
-      // compute the activation function value
-      virtual double f(const double &) = 0;
+    //return a 3-characters identification string
+    virtual std::string getIdCode() = 0;
 
-      // first derivative of the activation function
-      virtual double f1d(const double &) = 0;
+    // return the ideal input mean value (mu) and standard deviation (sigma)
+    // (pretending a gaussian distribution)
+    virtual double getIdealInputMu() = 0;
+    virtual double getIdealInputSigma() = 0;
 
-      // second derivative of the activation function
-      virtual double f2d(const double &) = 0;
+    // return the output mean value (mu) and standard deviation (sigma)
+    // (pretending a gaussian distribution)
+    virtual double getOutputMu() = 0;
+    virtual double getOutputSigma() = 0;
+
+    // compute the activation function value
+    virtual double f(const double &) = 0;
+
+    // first derivative of the activation function
+    virtual double f1d(const double &) = 0;
+
+    // second derivative of the activation function
+    virtual double f2d(const double &) = 0;
+
+    // third derivative of the activation function
+    virtual double f3d(const double &) = 0;
 };
-\end{verbatim}
+\end{lstlisting}
 
 The \verb+ActivationFunctionInterface+ is a pure virtual class, which can be used to generate customised activation functions to feed a FFNN.
-It is necessary to provide the methods \verb+f+, \verb+f1d+, and \verb+f2d+.
 As example we report the class for the logistic function:
 
-\begin{verbatim}
+\begin{lstlisting}
 class LogisticActivationFunction: public ActivationFunctionInterface
 {
-   public:
+public:
 
-      double f(const double &in)
-      {
-         return (1./(1.+exp(-in)));
-      }
+    std::string getIdCode(){return "lgs";}
 
-      double f1d(const double &in)
-      {
-         double f=this->f(in);
-         return (f*(1.-f));
-      }
+    // input should be in the rage [-5 : 5] -> mu=0   sigma=sqrt(3)
+    double getIdealInputMu(){return 0.;}
+    double getIdealInputSigma(){return 2.886751345948129;}
 
-      double f2d(const double &in)
-      {
-         double f=this->f(in);
-         return (f*(1.-f)*(1.-2.*f));
-      }
+    // output is in the range [0 : 1] -> mu=0.5   sigma=1/(2*sqrt(3))
+    double getOutputMu(){return 0.5;}
+    double getOutputSigma(){return 0.288675134594813;}
+
+    double f(const double &in)
+    {
+     return (1./(1.+exp(-in)));
+    }
+
+    double f1d(const double &in)
+    {
+     double f=this->f(in);
+     return (f*(1.-f));
+    }
+
+    double f2d(const double &in)
+    {
+     double f=this->f(in);
+     return (f*(1.-f)*(1.-2.*f));
+    }
 };
 
-\end{verbatim}
+\end{lstlisting}
 
 % section activationfunctioninterface (end)
+
+
+
+
+
+\section{Smart Beta}
+\label{sec:smart_beta}
+
+To understand this section, first read the pdf \verb+smart_initial_beta.pdf+ in this folder.
+
+It is possible to initialise the beta of a FFNN by doing the following:
+\begin{lstlisting}
+#include "SmartBetaGenerator.hpp"
+
+FeedFowardNeuralNetwork * ffnn = new FeedFowardNeuralNetwork(4, 10, 2);
+smart_beta::generateSmartBeta(ffnn);
+\end{lstlisting}
+
+For each unit we computed the desired $\mu_{\beta}$ and $\sigma_{\beta}$ using the formula reported in \verb+smart_initial_beta.pdf+, and sampled the beta accordingly.
+
+To enforce the orthogonality we proceeded in the following way.
+We sampled the first unit beta, a vector that we will now label as $v$. Then we sampled the second unit one, $u$, and applied the following modification:
+\begin{equation}
+   u \quad \rightarrow \quad u - \frac{\langle u, v \rangle}{\langle v, v \rangle} v     \label{eq:orthogonality}
+\end{equation}
+where $\langle u, v \rangle$ denotes the scalar product between $u$ and $v$.
+This modification enforce the orthogonality.
+We then multiply it by a scalar to make $u$ have the same norm as before the modification in Eq. \ref{eq:orthogonality}.
+In case we sampled $u$ such that after the modification its norm is very small, we then sample it again.
+We proceed in this way as long as possible. When we have enough beta to form a complete basis set, we stop applying the orthogonality procedure and we sample them randomly again.
+
+% section smart_beta (end)
 
 
 
